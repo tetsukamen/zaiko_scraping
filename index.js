@@ -4,8 +4,14 @@ async function hotel() {
   console.log("*** ホテル ***");
 
   const query = {
-    url: "https://jp.hotels.com/search.do?f-accid=1&q-destination=%E6%97%A5%E6%9C%AC%E3%80%81%E6%96%B0%E6%BD%9F%E7%9C%8C%E5%8D%97%E9%AD%9A%E6%B2%BC%E5%B8%82&q-check-in=2021-12-30&q-check-out=2022-01-04&q-rooms=1&q-room-0-adults=1&q-room-0-children=1&q-room-0-child-0-age=11",
+    url: "https://jp.hotels.com/search.do?f-accid=1&q-destination=%E6%97%A5%E6%9C%AC%E3%80%81%E6%96%B0%E6%BD%9F%E7%9C%8C%E5%8D%97%E9%AD%9A%E6%B2%BC%E5%B8%82&q-check-in=2022-01-05&q-check-out=2022-01-06&q-rooms=1&q-room-0-adults=1&q-room-0-children=1&q-room-0-child-0-age=11",
     querySelector: "li[data-hotel-id]",
+    nameSelector: "._3zH0kn",
+    priceSelector: "._2R4dw5",
+    addressSelector: "._2oHhXM",
+    distanceSelector: "._2sHYiJ",
+    linkSelector: "._61P-R0",
+    evaluationSelector: "._2dOcxA",
   };
 
   const browser = await puppeteer.launch({ headless: false }); // browser起動
@@ -17,11 +23,51 @@ async function hotel() {
 
   const list = await page.$$(query.querySelector);
   for (let item of list) {
-    const text = await (await item.getProperty("textContent")).jsonValue();
-    console.log(text);
+    // ホテル名
+    const name = await (
+      await (await item.$(query.nameSelector)).getProperty("textContent")
+    ).jsonValue();
+    // 金額
+    const price = await (
+      await (await item.$(query.priceSelector))?.getProperty("textContent")
+    )?.jsonValue();
+    // 住所
+    const address = await (
+      await (await item.$(query.addressSelector))?.getProperty("textContent")
+    )?.jsonValue();
+    // 距離
+    const distance = await (
+      await (await item.$(query.distanceSelector))?.getProperty("textContent")
+    )?.jsonValue();
+    // 部屋の詳細ページのリンク
+    const link = await (
+      await (await item.$(query.linkSelector))?.getProperty("href")
+    )?.jsonValue();
+    // 評価
+    let evaluation = await (
+      await (await item.$(query.evaluationSelector))?.getProperty("textContent")
+    )?.jsonValue();
+    evaluation = parseInt(evaluation?.match(/(\d|\.)+/)[0]);
+
+    originalData.push({
+      name,
+      price,
+      address,
+      distance,
+      link,
+      evaluation,
+    });
   }
 
+  const filteredData = originalData.filter(
+    (item) => item.price !== undefined && item.evaluation > 2
+  );
+
+  console.log(filteredData);
+
   browser.close();
+
+  return filteredData;
 }
 
 async function mac() {
@@ -117,6 +163,7 @@ async function mac() {
 
   // 結果
   console.log(collectedData);
+  return collectedData;
 }
 
 async function cleaner() {
@@ -141,17 +188,31 @@ async function cleaner() {
   if (isNaN(text)) {
     console.log("在庫なし");
   } else {
-    console.log("在庫:", cleaner);
+    console.log("在庫:", text);
   }
+  return text;
 }
 
 async function main() {
   try {
-    // const url =
-    //   "https://jp.hotels.com/search.do?f-accid=1&q-destination=%E6%97%A5%E6%9C%AC%E3%80%81%E6%96%B0%E6%BD%9F%E7%9C%8C%E5%8D%97%E9%AD%9A%E6%B2%BC%E5%B8%82&q-check-in=2021-12-30&q-check-out=2022-01-04&q-rooms=1&q-room-0-adults=1&q-room-0-children=1&q-room-0-child-0-age=11";
-    await hotel();
-    // await mac();
-    // await cleaner();
+    const hotelResult = await hotel();
+    const macResult = await mac();
+    const cleanerResult = await cleaner();
+
+    const sgMail = require("@sendgrid/mail");
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+      to: "test@example.com",
+      from: "test@example.com",
+      subject: "在庫スクレイピング",
+      // text: "and easy to do anywhere, even with Node.js",
+      html: `<ul>
+              <li>hotel:${hotelResult}</li>
+              <li>mac:${macResult}</li>
+              <li>cleaner:${cleanerResult}</li>
+            </ul>`,
+    };
+    sgMail.send(msg);
   } catch (e) {
     console.log(e);
   }
