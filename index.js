@@ -200,10 +200,10 @@ async function main() {
     const cleanerResult = await cleaner();
 
     const sgMail = require("@sendgrid/mail");
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.setApiKey("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");
     const msg = {
-      to: "test@example.com",
-      from: "test@example.com",
+      to: "info@honyaku-match.com",
+      from: "info@honyaku-match.com",
       subject: "在庫スクレイピング",
       // text: "and easy to do anywhere, even with Node.js",
       html: `<ul>
