@@ -1,4 +1,6 @@
 const puppeteer = require("puppeteer");
+require('dotenv').config();
+
 
 async function hotel() {
   console.log("*** ホテル ***");
@@ -198,18 +200,20 @@ async function main() {
     const hotelResult = await hotel();
     const macResult = await mac();
     const cleanerResult = await cleaner();
+    
+    
 
     const sgMail = require("@sendgrid/mail");
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const msg = {
-      to: "info@honyaku-match.com",
+      to: "smrok02@gmail.com",
       from: "info@honyaku-match.com",
       subject: "在庫スクレイピング",
       // text: "and easy to do anywhere, even with Node.js",
       html: `<ul>
-              <li>hotel:${hotelResult}</li>
-              <li>mac:${macResult}</li>
-              <li>cleaner:${cleanerResult}</li>
+              <li>hotel:${JSON.stringify(hotelResult)}</li>
+              <li>mac:${JSON.stringify(macResult)}</li>
+              <li>cleaner:${JSON.stringify(cleanerResult)}</li>
             </ul>`,
     };
     sgMail.send(msg);
