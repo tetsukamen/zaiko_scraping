@@ -16,11 +16,7 @@ async function hotel() {
     evaluationSelector: "._2dOcxA",
   };
 
-  // const browser = await puppeteer.launch({ headless: false }); // browser起動
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  
+  const browser = await puppeteer.launch({ headless: false }); // browser起動
   const page = await browser.newPage(); // ページ生成
 
   const originalData = []; // 収集した生データ
@@ -87,9 +83,7 @@ async function mac() {
   };
   const memorySizes = ["16", "32", "64", "128"];
 
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  }); // browser起動
+  const browser = await puppeteer.launch({ headless: false }); // browser起動
   const page = await browser.newPage(); // ページ生成
 
   const originalData = []; // 収集した生データ
@@ -182,9 +176,7 @@ async function cleaner() {
     querySelector: ".itemstock .i_value",
   };
 
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  }); // browser起動
+  const browser = await puppeteer.launch({ headless: false }); // browser起動
   const page = await browser.newPage(); // ページ生成
   await page.goto(query.url); // ページへ移動
 
